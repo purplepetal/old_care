@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>注册管理员</title>
+        <link rel="stylesheet" href="../static/css/login.css">
+        <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+        <script src="http://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+        <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+        <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+        <!-- 引入样式 -->
+        <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+        <!-- 引入组件库 -->
+        <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    </head>
+    <body>
+        <div class="control">
+            <div class="item">
+                <div class="active">智慧养老后台系统</div>
+            </div>
+            <div class="content">
+                <form action=" " id="app" method="post">
+                    <table>
+                        <div class="scroll" style="display: block;">
+                            <p>账号</p>
+                            <input name="username" type="text" id="username" class="text" placeholder="用户名" v-model="username"/>
+                            <p>密码</p>
+                            <input name="password" type="password" id="password" class="text" placeholder="密码" v-model="password"/>
+                            <p>二次密码</p>
+                            <input name="password2" type="password" id="password2" class="text" placeholder="再次输入密码" v-model="password2"/>
+                            <p>姓名</p>
+                            <input name="REAL_NAME" type="text" id="REAL_NAME" class="text" placeholder="真实姓名" v-model="REAL_NAME"/>
+                            <p>性别</p>
+                            <el-radio v-model="SEX" label="男">男</el-radio>
+                            <el-radio v-model="SEX" label="女">女</el-radio>
+                            <p>邮箱</p>
+                            <input name="EMAIL" type="text" id="EMAIL" class="text" placeholder="电子邮箱" v-model="EMAIL"/>
+                            <p>电话</p>
+                            <input name="PHONE" type="text" id="PHONE" class="text" placeholder="办公室电话号码" v-model="PHONE"/>
+                            <p>手机号</p>
+                            <input name="MOBILE" type="text" id="MOBILE" class="text" placeholder="手机号码" v-model="MOBILE"/>
+                            <p>个人介绍</p>
+                            <input name="DESCRIPTION" type="text" id="DESCRIPTION" class="text" placeholder="描述下自己" v-model="DESCRIPTION"/>
+                            <br/>
+                            <input id="reg_submit" type="button" value="注册" @click="reg"/>
+                        </div>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </body>
+<script>
+        var app=new Vue({
+            el:"#app",
+            data:{
+                username: '',
+                password: '',
+                password2: '',
+                REAL_NAME: '',
+                SEX: '',
+                EMAIL: '',
+                PHONE: '',
+                MOBILE: '',
+                DESCRIPTION: ''
+            },
+            delimiters:["[[","]]"],
+            mounted:function (){
+            },
+            methods:{
+                reg(){
+                     var that = this;
+                     if(this.username!=''&&this.password!=''&&this.password2!=''&&this.REAL_NAME!=''&&this.SEX!=''&&this.EMAIL!=''&&this.PHONE!=''&&this.MOBILE!=''&&this.DESCRIPTION!=''){
+                        if(this.password==this.password2){
+                          var data={username : that.username,
+                            password : that.password,
+                            REAL_NAME : that.REAL_NAME,
+                            SEX : that.SEX,
+                            EMAIL : that.EMAIL,
+                            PHONE : that.PHONE,
+                            MOBILE : that.MOBILE,
+                            DESCRIPTION : that.DESCRIPTION}
+                            this.$http.post("http://121.196.111.9:5000/secs/register",JSON.stringify(data),{emulateJSON:true}
+                            ).then(rsp=>{
+                            console.log(rsp.body)
+                                if(rsp.body.message=='注册成功'){
+                                  setTimeout(function(){
+                                    window.location.href="login.html"
+                                  },500)
+                                }else if(rsp.body.message=='用户名已存在'){
+                                  that.$message.error("用户名已存在！")
+                                }else{
+                                  that.$message.error("注册失败！")
+                                }
+                             },err=>{console.log('Error')});
+                          }else{
+                          this.$message.error('两次密码不一致');}
+                        }else{
+                          this.$message.error('所有信息均不能为空');
+                        }
+                }
+            }
+        });
+</script>
+</html>

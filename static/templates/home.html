@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/selfc.css">
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <title>首页</title>
+</head>
+<body>
+<form  action=" " method="post" id="app">
+    <div class="container"style="margin-right: 50px">
+        <div class="ui_content" style="margin-top:30px">
+            <div class="ui_tb" style="margin-left: 50px">
+                 <el-row>
+                  <el-col :span="8" style="height:100%">
+                      <el-card class="box-card" style="margin-right: 50px;height:400px" align="middle">
+                      <div slot="header" class="clearfix">
+                        <span>目前养老院人数统计</span>
+                      </div>
+                      <div id="chart1" style="width:300px; height: 300px"></div>
+                    </el-card>
+                  </el-col>
+                  <el-col :span="16">
+                      <div class="hchange">近七天养老院人数变化统计</div>
+                      <el-table
+                          :data="v_num"
+                          style="width: 100%">
+                          <el-table-column
+                            prop="v_date"
+                            label="日期"
+                            align="center"
+                            min-width="16%">
+                          </el-table-column>
+                          <el-table-column
+                            prop="c_old"
+                            label="新增老人"
+                          align="center"
+                          min-width="14%">
+                          </el-table-column>
+                          <el-table-column
+                            prop="l_old"
+                            label="离开老人"
+                          align="center"
+                          min-width="14%">
+                          </el-table-column>
+                          <el-table-column
+                            prop="c_employee"
+                            label="新增工作人员"
+                          align="center"
+                          min-width="14%">
+                          </el-table-column>
+                          <el-table-column
+                            prop="l_employee"
+                            label="离开工作人员"
+                          align="center"
+                          min-width="14%">
+                          </el-table-column>
+                          <el-table-column
+                            prop="c_volu"
+                            label="新增义工"
+                          align="center"
+                          min-width="14%">
+                          </el-table-column>
+                          <el-table-column
+                            prop="l_volu"
+                            label="离开义工"
+                              align="center"
+                              min-width="14%">
+                          </el-table-column>
+                        </el-table>
+                  </el-col>
+                </el-row>
+            </div>
+        </div>
+    </div>
+</form>
+<style>
+.hchange{
+    width: 100%;
+    height: 60px;
+    display: inline-block;
+    color: black;
+    font-size: 18px;
+    text-align: center;
+    line-height: 60px;
+    cursor: pointer;
+}
+</style>
+<script>
+         var app=new Vue({
+            el:"#app",
+            data:{
+                old_num:'0',
+                employee_num:'0',
+                volu_num:'0',
+                v_num:[]
+            },
+            delimiters:["[[","]]"],
+            mounted:function (){
+                this.getStatistics()
+            },
+            methods:{
+                getStatistics(){
+                    this.$http.get("http://121.196.111.9:5000/secs/countTotal"
+                           ).then(rsp=>{
+                        this.old_num=rsp.body.data.old_total
+                        this.employee_num=rsp.body.data.employee_total
+                        this.volu_num=rsp.body.data.volunteer_total
+                        this.v_num=rsp.body.data.v_num
+                        console.log(rsp.body)
+                        this.initEcharts()
+                    },err=>{console.log('Error')});
+                },
+                initEcharts(){
+                    var servicedata=[];
+                         var obj=new Object();
+                         obj.name="老人："+this.old_num;
+                         obj.value=this.old_num;
+                         servicedata[0]=obj;
+                         var obj=new Object();
+                         obj.name="工作人员："+this.employee_num;
+                         obj.value=this.employee_num;
+                         servicedata[1]=obj;
+                         var obj=new Object();
+                         obj.name="义工："+this.volu_num;
+                         obj.value=this.volu_num;
+                         servicedata[2]=obj;
+                    var myChart1 = echarts.init(document.getElementById('chart1'));
+                    var option1 = {
+                        title: {
+                            text: ' ',
+                            x:'center'
+                        },
+                        avoidLabelOverlap: false,
+                        series:[{
+                            name:'访问量',
+                            type:'pie',
+                            center: ['50%', '50%'],
+                            label: {
+                                  normal: {
+                                      position: "inside"//此处将展示的文字在内部展示
+                                  }
+                              },
+                            radius:'80%',
+                            data:servicedata
+                        }]
+                    };
+                    myChart1.setOption(option1);
+                 }
+            }
+        });
+</script>
+</body>
+</html>
+

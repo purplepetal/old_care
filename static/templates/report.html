@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/selfc.css">
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/socket.io.dev.js"></script>
+	<script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
+	<script type="text/javascript" src="../js/jquery.ztree.core-3.2.js"></script>
+    <title>实时报表</title>
+</head>
+<body>
+<form  action=" " method="post" id="app">
+    <div class="container">
+        <div class="ui_content">
+            <div class="ui_tb" style="margin-top: 10px">
+                 <div style="margin-bottom: 10px">
+                     <span style="width:6%;display:-moz-inline-box;display:inline-block"></span>
+                     <el-select v-model="v_type" clearable placeholder="请选择" style="width:12.7%">
+                        <el-option
+                          v-for="item in type_option"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                      </el-select>
+                     <span style="width:0.5%;display:-moz-inline-box;display:inline-block"></span>
+                     <el-date-picker style="width:17.8%"
+                        v-model="v_date"
+                        type="date"
+                        format="yyyy-MM-dd"
+                        value-format="yyyy-MM-dd"
+                        placeholder="选择日期"
+                        :picker-options="pickerOptions1">
+                     </el-date-picker>
+                     <span style="width:0.5%;display:-moz-inline-box;display:inline-block"></span>
+                     <el-select v-model="v_location" clearable placeholder="请选择" style="width:9.4%">
+                        <el-option
+                          v-for="item in location_option"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value">
+                        </el-option>
+                     </el-select>
+                     <span style="width:1.5%;display:-moz-inline-box;display:inline-block"></span>
+                     <input type="text"  class="ui_input_txt02"  ref='v_desc' id="v_desc" v-model="v_desc" style="width:22%"/><span style="width:2.2%;display:-moz-inline-box;display:inline-block"></span>
+                     <input type="text"  class="ui_input_txt02"  ref='v_oldid' id="v_oldid" v-model="v_oldid" style="width:6.5%"/><span style="width:2%;display:-moz-inline-box;display:inline-block"></span>
+                        <input type="button" value="查询" @click="query" class="box_btn1" />
+                 </div>
+                 <el-table
+                    :data="event"
+                    border
+                    stripe
+                    style="width: 100%">
+                    <el-table-column
+                      prop="id"
+                      label="#"
+                      align="center"
+                      min-width="6%">
+                    </el-table-column>
+                    <el-table-column
+                      prop="event_type"
+                      label="事件类型"
+                      align="center"
+                      min-width="13%">
+                    </el-table-column>
+                    <el-table-column
+                      prop="event_date"
+                      label="发生时间"
+                      align="center"
+                      min-width="20%">
+                    </el-table-column>
+                    <el-table-column
+                      prop="event_location"
+                      label="发生地点"
+                      align="center"
+                      min-width="10%">
+                    </el-table-column>
+                    <el-table-column
+                      prop="event_desc"
+                      label="事件描述"
+                      align="center"
+                      min-width="28%">
+                    </el-table-column>
+                    <el-table-column
+                      prop="oldperson_id"
+                      label="老人id"
+                      align="center"
+                      min-width="10%">
+                    </el-table-column>
+                     <el-table-column
+                      label="截图"
+                      align="center"
+                      min-width="13%">
+                         <template slot-scope="scope">
+                            <img  :src="bindIcon(scope.row.img_dir)" min-width="60" height="60" class="imgScale" />
+                         </template>
+                      </el-table-column>
+                  </el-table>
+                  <div style="display:inline-block; float:right;">
+                    <el-pagination
+                            :current-page.sync="pageNow"
+                            :page-size="size"
+                            :page-sizes="[2,4,6,8,10]"
+                            :total="total"
+                            @current-change="findPage"
+                            @size-change="findSizeChange"
+                            background
+                            layout="total, sizes, prev, pager, next, jumper"
+                            style="padding-top: 15px">
+                    </el-pagination>
+                  </div>
+            </div>
+        </div>
+    </div>
+</form>
+<style>
+    .imgScale{
+      margin-top: 5px;
+      cursor: pointer;
+      transition: all 0.6s;
+    }
+    .imgScale:hover{
+      transform: scale(2);
+    }
+</style>
+<script>
+         var app=new Vue({
+            el:"#app",
+            data:{
+                size:10,
+                total:0,
+                pageNow: 1,
+                event: [],
+                type_option: [{
+                  value: '1',
+                  label: '老人笑'
+                }, {
+                  value: '2',
+                  label: '摔倒'
+                }, {
+                  value: '3',
+                  label: '陌生人出现'
+                }, {
+                  value: '4',
+                  label: '禁区闯入'
+                }, {
+                  value: '5',
+                  label: '义工和老人交互'
+                }],
+                v_type: '',
+                v_date: '',
+                pickerOptions1: {
+                  disabledDate(time) {
+                    return time.getTime() > Date.now();
+                  }
+                },
+                location_option: [{
+                  value: '房间',
+                  label: '房间'
+                }, {
+                  value: '房间桌子',
+                  label: '房间桌子'
+                }, {
+                  value: '走廊',
+                  label: '走廊'
+                }, {
+                  value: '院子',
+                  label: '院子'
+                }],
+                v_location: '',
+                v_desc: '',
+                v_oldid: '',
+                baseUrl:"http://192.168.43.46:5001/",
+                socketUrl:"http://196.168.43.46:5001/",
+                socket: ''
+            },
+            delimiters:["[[","]]"],
+            mounted:function (){
+                this.query()
+                this.initWebSocket()
+            },
+            methods:{
+                findSizeChange(size) {
+                    console.log("当每页条数改变的时候" + size)
+                    this.size = size
+                    this.query()
+                },
+                findPage() {
+                    console.log(this.pageNow)
+                    this.query()
+                },
+                bindIcon(img_path) {
+                    var whole_path = this.baseUrl+"display/event/"+img_path;
+                    return whole_path;
+                },
+                query(){
+                    var that = this;
+                    var data={type : that.v_type,
+                            date : that.v_date,
+                            location : that.v_location,
+                            desc : that.v_desc,
+                            old_id : that.v_oldid,
+                            pageNow : that.pageNow,
+                            pageSize : that.size}
+                    this.$http.post("http://121.196.111.9:5000/secs/getEventList",data,{emulateJSON:true}
+                            ).then(rsp=>{
+                                if(rsp.body.message=='success'){
+                                    if (rsp.body.data.events.length!=0){
+                                        this.event=rsp.body.data.events;
+                                        this.total=rsp.body.data.total;
+                                    }else {
+                                        this.event=[{}]
+                                    }
+                                }
+                             },err=>{console.log('Error')});
+                },
+                initWebSocket(){
+                    let that=this
+                     window.setInterval(function() {
+                        start_time = (new Date).getTime();
+                        that.query()
+                    }, 1000);
+                }
+            }
+        });
+</script>
+</body>
+</html>
+

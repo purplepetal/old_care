@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/selfc.css">
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <title>管理员个人信息</title>
+</head>
+<body>
+<form  action=" " method="post" id="app">
+    <div class="container">
+        <div class="ui_content">
+            <div class="ui_tb">
+                <div align="center"><img src=http://121.196.111.9:5000/secs/display/img/head.jpg min-width="90" height="90" /></div>
+                <div align="center"><el-button style="margin-left: 310px" type="text" @click="dialogVisible = true" :disabled="d_change">修改密码</el-button>
+                <el-dialog
+                  title="修改密码"
+                  :visible.sync="dialogVisible"
+                  width="30%"
+                  :before-close="handleClose">
+                  <el-input v-model="pre_pass" show-password placeholder="请输入原密码"></el-input>
+                  <el-input style="margin-top: 3px" v-model="new_pass" show-password placeholder="请输入新密码"></el-input>
+                  <el-input style="margin-top: 3px" v-model="new_pass2" show-password placeholder="请再次输入新密码"></el-input>
+                  <span slot="footer" class="dialog-footer">
+                    <el-button @click="dialogVisible = false">取 消</el-button>
+                    <el-button type="primary" @click="change_pass">确 定</el-button>
+                  </span>
+                </el-dialog>
+                </div>
+                <table style="width: 500px" class="table" cellspacing="0" cellpadding="0" width="100%" align="center" border="0">
+                    <tr>
+                        <td width="30%">ID</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="ID" :disabled="true"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">用户名</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="username" :disabled="d_username"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">真实姓名</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="REAL_NAME" :disabled="d_REAL_NAME"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">性别</td>
+                        <td width="70%">
+                            <div style="text-align: left">
+                                <span style="margin-left: 21px"> </span>
+                            <el-radio v-model="SEX" :disabled="d_SEX" label="男">男</el-radio>
+                            <el-radio v-model="SEX" :disabled="d_SEX" label="女">女</el-radio></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">邮箱</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="EMAIL" :disabled="d_EMAIL"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">电话</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="PHONE" :disabled="d_PHONE"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">手机号</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="MOBILE" :disabled="d_MOBILE"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">个人介绍</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="DESCRIPTION" :disabled="d_DESCRIPTION"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">创建时间</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="CREATED" :disabled="true"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">创建者ID</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="CREATEBY" :disabled="true"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                    <tr>
+                        <td width="30%">更新时间</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="UPDATED" :disabled="true"></el-input>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="30%">更新者ID</td>
+                        <td width="70%">
+                            <el-input class="input" style="width: 335px" v-model="UPDATEBY" :disabled="true"></el-input>
+                        </td>
+                    </tr>
+                </table>
+                <div align="center"><input class="edit" id="edit" v-model="eee" type="button" @click="edit"/></div>
+            </div>
+        </div>
+    </div>
+</form>
+<style>
+.input .el-input__inner {
+        border: 0 none;
+    }
+</style>
+<style lang="scss">
+.el-textarea__inner,.el-input__inner {
+    background: transparent !important;
+}
+</style>
+
+<script>
+         var app=new Vue({
+            el:"#app",
+            data:{
+                ID: '',
+                username: '',
+                REAL_NAME: '',
+                SEX: '',
+                EMAIL: '',
+                PHONE: '',
+                MOBILE: '',
+                DESCRIPTION: '',
+                CREATED: '',
+                CREATEBY: '',
+                UPDATED: '',
+                UPDATEBY: '',
+                d_username: true,
+                d_REAL_NAME: true,
+                d_SEX: true,
+                d_EMAIL: true,
+                d_PHONE: true,
+                d_MOBILE: true,
+                d_DESCRIPTION: true,
+                eee: '编辑',
+                dialogVisible: false,
+                d_change: false,
+                pre_pass: '',
+                new_pass: '',
+                new_pass2: ''
+            },
+            delimiters:["[[","]]"],
+            mounted:function (){
+                var admin= location.search.replace(/[^\d]/g, "");
+                this.ID=admin;
+                this.acquire()
+            },
+            methods:{
+                acquire(){
+                    this.d_username=true;
+                    this.d_REAL_NAME=true;
+                    this.d_SEX=true;
+                    this.d_EMAIL=true;
+                    this.d_PHONE=true;
+                    this.d_MOBILE=true;
+                    this.d_DESCRIPTION=true;
+                    this.eee='编辑';
+
+                    this.$http.get("http://121.196.111.9:5000/secs/getSysUser",{
+                                params:{ID:this.ID}}
+                           ).then(rsp=>{
+                        this.ID=rsp.body.data.ID
+                        this.username=rsp.body.data.username
+                        this.REAL_NAME=rsp.body.data.REAL_NAME
+                        this.SEX=rsp.body.data.SEX
+                        this.EMAIL=rsp.body.data.EMAIL
+                        this.PHONE=rsp.body.data.PHONE
+                        this.MOBILE=rsp.body.data.MOBILE
+                        this.DESCRIPTION=rsp.body.data.DESCRIPTION
+                        this.CREATED=rsp.body.data.CREATED
+                        this.CREATEBY=rsp.body.data.CREATEBY
+                        this.UPDATED=rsp.body.data.UPDATED
+                        this.UPDATEBY=rsp.body.data.UPDATEBY
+                        console.log(rsp.body)
+                    },err=>{console.log('Error')});
+                },
+                change_pass(){
+                    if(this.pre_pass!=''&&this.new_pass!=''&&this.new_pass2!=''){
+                        if(this.new_pass==this.new_pass2){
+                            var that = this;
+                            var data={ID : that.ID,
+                                    pre_pass : that.pre_pass,
+                                    new_pass : that.new_pass}
+                                this.$http.post("http://121.196.111.9:5000/secs/updateSysUserPassword",data,{emulateJSON:true}
+                                ).then(rsp=>{
+                                console.log(rsp.body)
+                                    if(rsp.body.message=='更改成功'){
+                                        this.$message({
+                                          message: '修改成功！',
+                                          type: 'success'
+                                        });
+                                        this.dialogVisible=false;
+                                    }else if(rsp.body.message=='密码错误'){
+                                    this.$message.error('原密码输入有误！');
+                                    }else{ this.$message.error('修改失败！');}
+                                 },err=>{console.log('Error')
+                                 this.dialogVisible=false;
+                                 this.$message.error('修改失败！');});
+                        }else{
+                            this.$message.error('两次新密码输入不一致！');
+                        }
+                    }else{
+                        this.$message.error('请输入完整！');
+                    }
+                },
+                handleClose(done) {
+                    this.$confirm('确认关闭？')
+                      .then(_ => {
+                        done();
+                      })
+                      .catch(_ => {});
+                },
+                edit(){
+                    if(this.eee=='编辑'){
+                        this.d_username=false;
+                        this.d_REAL_NAME=false;
+                        this.d_SEX=false;
+                        this.d_EMAIL=false;
+                        this.d_PHONE=false;
+                        this.d_MOBILE=false;
+                        this.d_DESCRIPTION=false;
+                        this.eee='确定';
+                        this.d_change=true;
+                    }else{
+                        this.d_username=true;
+                        this.d_REAL_NAME=true;
+                        this.d_SEX=true;
+                        this.d_EMAIL=true;
+                        this.d_PHONE=true;
+                        this.d_MOBILE=true;
+                        this.d_DESCRIPTION=true;
+                        this.eee='编辑';
+                        this.d_change=false;
+
+                        if(this.username!=''&&this.REAL_NAME!=''&&this.SEX!=''&&this.EMAIL!=''&&this.PHONE!=''&&this.MOBILE!=''&&this.DESCRIPTION!=''){
+                            var that = this;
+                            var data={ID : that.ID,
+                                      username : that.username,
+                                      REAL_NAME : that.REAL_NAME,
+                                      SEX : that.SEX,
+                                      EMAIL : that.EMAIL,
+                                      PHONE : that.PHONE,
+                                      MOBILE : that.MOBILE,
+                                      DESCRIPTION : that.DESCRIPTION,
+                                      CREATED : that.CREATED,
+                                      CREATEBY : that.CREATEBY,
+                                      UPDATED : that.UPDATED,
+                                      UPDATEBY : that.UPDATEBY}
+                                this.$http.post("http://121.196.111.9:5000/secs/updateSysUser",data,{emulateJSON:true}
+                                ).then(rsp=>{
+                                console.log(rsp.body)
+                                    if(rsp.body.message=='更改成功'){
+                                        this.ID=rsp.body.data.ID
+                                        this.username=rsp.body.data.username
+                                        this.REAL_NAME=rsp.body.data.REAL_NAME
+                                        this.SEX=rsp.body.data.SEX
+                                        this.EMAIL=rsp.body.data.EMAIL
+                                        this.PHONE=rsp.body.data.PHONE
+                                        this.MOBILE=rsp.body.data.MOBILE
+                                        this.DESCRIPTION=rsp.body.data.DESCRIPTION
+                                        this.CREATED=rsp.body.data.CREATED
+                                        this.CREATEBY=rsp.body.data.CREATEBY
+                                        this.UPDATED=rsp.body.data.UPDATED
+                                        this.UPDATEBY=rsp.body.data.UPDATEBY
+                                        this.$message({
+                                              message: '更改成功！',
+                                              type: 'success'
+                                        });
+                                    }else if(rsp.body.message=='用户名已存在'){
+                                        this.ID=rsp.body.data.ID
+                                        this.username=rsp.body.data.username
+                                        this.REAL_NAME=rsp.body.data.REAL_NAME
+                                        this.SEX=rsp.body.data.SEX
+                                        this.EMAIL=rsp.body.data.EMAIL
+                                        this.PHONE=rsp.body.data.PHONE
+                                        this.MOBILE=rsp.body.data.MOBILE
+                                        this.DESCRIPTION=rsp.body.data.DESCRIPTION
+                                        this.CREATED=rsp.body.data.CREATED
+                                        this.CREATEBY=rsp.body.data.CREATEBY
+                                        this.UPDATED=rsp.body.data.UPDATED
+                                        this.UPDATEBY=rsp.body.data.UPDATEBY
+                                        this.$message.error('用户名已存在！');
+                                    }else{
+                                        this.ID=rsp.body.data.ID
+                                        this.username=rsp.body.data.username
+                                        this.REAL_NAME=rsp.body.data.REAL_NAME
+                                        this.SEX=rsp.body.data.SEX
+                                        this.EMAIL=rsp.body.data.EMAIL
+                                        this.PHONE=rsp.body.data.PHONE
+                                        this.MOBILE=rsp.body.data.MOBILE
+                                        this.DESCRIPTION=rsp.body.data.DESCRIPTION
+                                        this.CREATED=rsp.body.data.CREATED
+                                        this.CREATEBY=rsp.body.data.CREATEBY
+                                        this.UPDATED=rsp.body.data.UPDATED
+                                        this.UPDATEBY=rsp.body.data.UPDATEBY
+                                        this.$message.error('更改失败！');}
+                                 },err=>{console.log('Error')
+                                 this.$message.error('更改失败！');});
+                        }else{
+                            this.$message.error('所有信息均不能为空！');
+                            this.$http.get("http://121.196.111.9:5000/secs/getSysUser",{
+                                        params:{ID:this.ID}}
+                                   ).then(rsp=>{
+                                this.ID=rsp.body.data.ID
+                                this.username=rsp.body.data.username
+                                this.REAL_NAME=rsp.body.data.REAL_NAME
+                                this.SEX=rsp.body.data.SEX
+                                this.EMAIL=rsp.body.data.EMAIL
+                                this.PHONE=rsp.body.data.PHONE
+                                this.MOBILE=rsp.body.data.MOBILE
+                                this.DESCRIPTION=rsp.body.data.DESCRIPTION
+                                this.CREATED=rsp.body.data.CREATED
+                                this.CREATEBY=rsp.body.data.CREATEBY
+                                this.UPDATED=rsp.body.data.UPDATED
+                                this.UPDATEBY=rsp.body.data.UPDATEBY
+                                console.log(rsp.body)
+                            },err=>{console.log('Error')});
+                        }
+                    }
+                }
+            }
+        });
+</script>
+</body>
+</html>
+

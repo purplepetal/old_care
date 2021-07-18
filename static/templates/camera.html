@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../css/selfc.css">
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+	<script type="text/javascript" src="../js/socket.io.dev.js"></script>
+	<script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.2.4/jquery.js"></script>
+	<script type="text/javascript" src="../js/jquery.ztree.core-3.2.js"></script>
+    <title>摄像头实时显示</title>
+</head>
+<body>
+<form  action=" " method="post" id="app">
+    <div class="container">
+                <el-row :gutter="20">
+                   <el-col :span="4" :offset="3">
+                    <el-radio-group v-model="video_radio" @change="video_change" :disabled="d_radio">
+                    <div><el-radio size="medium" border :label="0">房间摄像头</el-radio></div>
+                    <div><el-radio size="medium" border :label="1">桌面摄像头</el-radio></div>
+                    <div><el-radio size="medium" border :label="2">院子摄像头</el-radio></div>
+                    <div><el-radio size="medium" border :label="3">走廊摄像头</el-radio></div>
+                    </el-radio-group>
+                  </el-col>
+                  <el-col :span="17">
+                      <div align="center"><img height="400px" id="video" :src="img_url"></div>
+                      <div align="center"><input class="record" id="record" v-model="value_record" type="button" @click="record"/></div>
+                  </el-col>
+                </el-row>
+    </div>
+</form>
+<style>
+  .el-row {
+    margin-bottom: 20px;
+    height: 100%;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  .el-col {
+    border-radius: 4px;
+  }
+  .container {
+        top: 50%;
+		transform: translateY(-50%);
+		position:absolute;
+  }
+</style>
+<script>
+         var app=new Vue({
+            el:"#app",
+            data:{
+                video_radio: 0,
+                value_record: '开始录制',
+                path: '',
+                img_url:"http://192.168.43.46:5001/video_viewer?camera=0",
+                d_radio: false
+            },
+            delimiters:["[[","]]"],
+            mounted:function (){
+<!--            window.open("http://192.168.43.46:5001/sendVideo?path=home/reed/Desktop/code/oldcare/video/room_2021-07-16-05-51-10.avi")-->
+                this.video_change()
+
+            },
+            methods:{
+                video_change(){
+                    this.img_url="http://192.168.43.46:5001/video_viewer?camera="+this.video_radio;
+                },
+                record(){
+                    if(this.value_record=='开始录制'){
+                        this.value_record='停止录制';
+                        this.d_radio=true;
+                        var data={status : true}
+                          this.$http.post("http://192.168.43.46:5001/record_status",data,{emulateJSON:true}
+                          ).then(rsp=>{
+                            this.path=rsp.body.path;
+                          },err=>{console.log('Error')});
+                    }else{
+                        this.value_record='开始录制';
+                        this.d_radio=false;
+                        var that = this;
+                        var data1={status : false}
+                          this.$http.post("http://192.168.43.46:5001/record_status",data1,{emulateJSON:true}
+                          ).then(rsp=>{
+                              this.$http.get("http://192.168.43.46:5001/sendVideo",{
+                                            params:{path:that.path}}
+                                       ).then(rsp=>{
+                                        window.open("http://192.168.43.46:5001/sendVideo?path="+that.path)
+                              },err=>{console.log('Error')});
+                          },err=>{console.log('Error')});
+                    }
+                }
+            }
+        });
+</script>
+</body>
+</html>
+

@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="../css/sell.css" rel="stylesheet">
+    <link href="../css/upload.css" rel="stylesheet">
+    <script src="https://cdn.staticfile.org/vue/2.2.2/vue.min.js"></script>
+    <script src="http://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://cdn.staticfile.org/echarts/4.3.0/echarts.min.js"></script>
+    <!-- 引入样式 -->
+    <link href="https://unpkg.com/element-ui/lib/theme-chalk/index.css" rel="stylesheet">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script type="text/javascript" src="../js/socket.io.dev.js"></script>
+<!--    <script src="http://yourwebsite.com:12345/socket.io/socket.io.js"></script>-->
+<!--  <script src="https://cdn.bootcss.com/jquery/3.1.1/jquery.min.js"></script>-->
+<!--    <script src="https://cdn.bootcss.com/socket.io/1.5.1/socket.io.min.js"></script>-->
+<!--<script src="/socket.io/socket.io.js"></script>-->
+
+    <title>老人信息管理</title>
+</head>
+<body>
+<form action="" id="app" method="post">
+    <div class="container">
+        <div class="ui_content">
+            <div class="text_indent">
+                <div class="box_border">
+                    <div class="box_top">搜索</div>
+                    <div class="box_center">
+                        <span class="box_center_text2">输入老人ID或姓名：</span>
+                        <input class="ui_input_txt02" id="search_input" placeholder="Elder ID / Elder Name" ref='search_input'
+                               type="text"
+                               v-model="search_input"/>
+
+                        <input @click="post_query" class="box_btn1" type="button" value="查询"/>
+                        <input @click="addElderDialogVisible=true" class="box_btn1" style="margin-left:20px;" type="button"
+                               value="新增"/>
+                        <input @click.prevent="statistics" class="box_btn1" style="margin-left:20px;" type="button"
+                               value="统计图"/>
+                        <el-dialog :visible.sync="addElderDialogVisible" title="新增老人" width="70%">
+                            <el-form :model="form" :rules="rules" label-width="200px" ref="form">
+                                <el-form-item label="姓名" prop="username">
+                                    <el-input auto-complete="off" v-model="form.username"></el-input>
+                                </el-form-item>
+                                <el-form-item label="性别" prop="gender">
+                                    <el-select placeholder="请选择性别" v-model="form.gender">
+                                        <el-option label="男" value="m"></el-option>
+                                        <el-option label="女" value="f"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="电话" prop="phone">
+                                    <el-input v-model="form.phone"></el-input>
+                                </el-form-item>
+                                <el-form-item label="身份证号" prop="id_card">
+                                    <el-input v-model="form.id_card"></el-input>
+                                </el-form-item>
+                                <el-form-item label="出生日期" prop="birthday">
+                                    <el-date-picker
+                                            :picker-options="pickerOptions1"
+                                            align="right"
+                                            placeholder="选择日期"
+                                            value-format="yyyy-MM-dd"
+                                            type="date"
+                                            v-model="form.birthday">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="入养老院日期" prop="checkin_date">
+                                    <el-date-picker
+                                            align="right"
+                                            placeholder="选择日期"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                                            type="datetime"
+                                            v-model="form.checkin_date">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="离开养老院日期">
+                                    <el-date-picker
+                                            align="right"
+                                            placeholder="选择日期"
+                                            value-format="yyyy-MM-dd HH:mm:ss"
+                                            type="datetime"
+                                            v-model="form.checkout_date">
+                                    </el-date-picker>
+                                </el-form-item>
+                                <el-form-item label="房间号" prop="room_number">
+                                    <el-input auto-complete="off" v-model="form.room_number"></el-input>
+                                </el-form-item>
+                                <el-form-item label="第一监护人姓名" prop="firstguardian_name">
+                                    <el-input auto-complete="off" v-model="form.firstguardian_name"></el-input>
+                                </el-form-item>
+                                <el-form-item label="与第一监护人关系" prop="firstguardian_relationship">
+                                    <el-input auto-complete="off" v-model="form.firstguardian_relationship"></el-input>
+                                </el-form-item>
+                                <el-form-item label="第一监护人电话" prop="firstguardian_phone">
+                                    <el-input auto-complete="off" v-model="form.firstguardian_phone"></el-input>
+                                </el-form-item>
+                                <el-form-item label="第一监护人微信">
+                                    <el-input auto-complete="off" v-model="form.firstguardian_wechat"></el-input>
+                                </el-form-item>
+                                <el-form-item label="第二监护人姓名">
+                                    <el-input auto-complete="off" v-model="form.secondguardian_name"></el-input>
+                                </el-form-item>
+                                <el-form-item label="与第二监护人关系">
+                                    <el-input auto-complete="off" v-model="form.secondguardian_relationship"></el-input>
+                                </el-form-item>
+                                <el-form-item label="第二监护人电话">
+                                    <el-input auto-complete="off" v-model="form.secondguardian_phone"></el-input>
+                                </el-form-item>
+                                <el-form-item label="第二监护人微信">
+                                    <el-input auto-complete="off" v-model="form.secondguardian_wechat"></el-input>
+                                </el-form-item>
+                                <el-form-item label="健康状况" prop="health_state">
+                                    <el-input auto-complete="off" v-model="form.health_state"></el-input>
+                                </el-form-item>
+                                <el-form-item label="描述">
+                                    <el-input auto-complete="off" v-model="form.DESCRIPTION"></el-input>
+                                </el-form-item>
+                            </el-form>
+                            <div class="dialog-footer" slot="footer">
+                                <el-button @click="addElderDialogVisible = false">取 消</el-button>
+                                <el-button @click="finishAddElder('form')" type="primary">确 定</el-button>
+                            </div>
+                        </el-dialog>
+                        <el-dialog :visible.sync="statisticDialogVisible" title="统计图" width="70%" @open="open()">
+                            <div id="main1" style="width: 80%;height:400%;margin: 0 auto;"></div>
+                            <br><hr /><br>
+                            <div id="main2" style="width: 80%;height:400%;margin: 0 auto;"></div>
+                            <div class="dialog-footer" slot="footer">
+                                <el-button @click="statisticDialogVisible = false">关 闭</el-button>
+                            </div>
+                        </el-dialog>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui_content">
+            <div class="ui_tb">
+                <table align="center" border="0" cellpadding="0" cellspacing="0" class="table" width="100%">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>电话</th>
+                        <th>身份证号</th>
+                        <th>房间号</th>
+                        <th>健康状况</th>
+                        <th>头像</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tr :key="index" v-for="(rec,index) in my_list">
+                        <td>[[rec.ID]]</td>
+                        <td>[[rec.username]]</td>
+                        <td>[[rec.gender]]</td>
+                        <td>[[rec.phone]]</td>
+                        <td>[[rec.id_card]]</td>
+                        <td>[[rec.room_number]]</td>
+                        <td>[[rec.health_state]]</td>
+                        <td><img  :src="bindIcon(rec.profile_photo)" min-width="60" height="60" class="imgScale" /></td>
+                        <td>
+                            <a @click.prevent="detailClicked(index)" class="detail" href="">详情</a>
+                            <el-dialog :visible.sync="elderDetailDialogVisible" title="老人详细信息" width="70%">
+                                <el-form :model="editor" label-width="200px">
+                                    <el-form-item label="姓名">
+                                        <el-input :disabled="true" v-model="editor.username"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="性别">
+                                        <el-select :disabled="true" placeholder="请选择性别" v-model="editor.gender">
+                                            <el-option label="男" value="m"></el-option>
+                                            <el-option label="女" value="f"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="电话">
+                                        <el-input :disabled="true" v-model="editor.phone"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="身份证号">
+                                        <el-input :disabled="true" v-model="editor.id_card"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="出生日期">
+                                        <el-input :disabled="true" v-model="editor.birthday"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="入养老院日期">
+                                        <el-input :disabled="true" v-model="editor.checkin_date"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="离开养老院日期">
+                                        <el-input :disabled="true" v-model="editor.checkout_date"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="照片">
+                                        <img  :src="bindIcon(editor.profile_photo)" min-width="90" height="90" style="display: block;"/>
+                                    </el-form-item>
+                                    <el-form-item label="房间号">
+                                        <el-input :disabled="true" v-model="editor.room_number"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第一监护人姓名">
+                                        <el-input :disabled="true" v-model="editor.firstguardian_name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="与第一监护人关系">
+                                        <el-input :disabled="true"
+                                                  v-model="editor.firstguardian_relationship"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第一监护人电话">
+                                        <el-input :disabled="true" v-model="editor.firstguardian_phone"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第一监护人微信">
+                                        <el-input :disabled="true" v-model="editor.firstguardian_wechat"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第二监护人姓名">
+                                        <el-input :disabled="true" v-model="editor.secondguardian_name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="与第二监护人关系">
+                                        <el-input :disabled="true"
+                                                  v-model="editor.secondguardian_relationship"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第二监护人电话">
+                                        <el-input :disabled="true" v-model="editor.secondguardian_phone"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第二监护人微信">
+                                        <el-input :disabled="true" v-model="editor.secondguardian_wechat"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="健康状况">
+                                        <el-input :disabled="true" v-model="editor.health_state"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="描述">
+                                        <el-input :disabled="true" v-model="editor.DESCRIPTION"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div class="dialog-footer" slot="footer">
+                                    <el-button @click="elderDetailDialogVisible = false">关 闭</el-button>
+                                </div>
+                            </el-dialog>
+                            <a @click.prevent="editClicked(index)" class="edit" href="">编辑</a>
+                             <el-dialog :visible.sync="editElderDialogVisible" title="编辑老人信息" width="70%">
+                                <el-form :model="editor" :rules="rules" label-width="200px" ref="editor">
+                                    <el-form-item label="姓名" prop="username">
+                                        <el-input v-model="editor.username"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="性别"  prop="gender">
+                                        <el-select placeholder="请选择性别" v-model="editor.gender">
+                                            <el-option label="男" value="m"></el-option>
+                                            <el-option label="女" value="f"></el-option>
+                                        </el-select>
+                                    </el-form-item>
+                                    <el-form-item label="电话" prop="phone">
+                                        <el-input v-model="editor.phone"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="身份证号" prop="id_card">
+                                        <el-input v-model="editor.id_card"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="出生日期" prop="birthday">
+                                        <el-date-picker
+                                                :picker-options="pickerOptions1"
+                                                align="right"
+                                                placeholder="选择日期"
+                                                value-format="yyyy-MM-dd"
+                                                type="date"
+                                                v-model="editor.birthday">
+                                        </el-date-picker>
+                                    </el-form-item>
+                                    <el-form-item label="入养老院日期" prop="checkin_date">
+                                        <el-date-picker
+                                                align="right"
+                                                placeholder="选择日期"
+                                                value-format="yyyy-MM-dd HH:mm:ss"
+                                                type="datetime"
+                                                v-model="editor.checkin_date">
+                                        </el-date-picker>
+                                    </el-form-item>
+                                    <el-form-item label="离开养老院日期">
+                                        <el-date-picker
+                                                align="right"
+                                                placeholder="选择日期"
+                                                value-format="yyyy-MM-dd HH:mm:ss"
+                                                type="datetime"
+                                                v-model="editor.checkout_date">
+                                        </el-date-picker>
+                                    </el-form-item>
+                                    <el-form-item label="房间号" prop="room_number">
+                                        <el-input auto-complete="off" v-model="editor.room_number"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第一监护人姓名" prop="firstguardian_name">
+                                        <el-input auto-complete="off" v-model="editor.firstguardian_name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="与第一监护人关系" prop="firstguardian_relationship">
+                                        <el-input auto-complete="off"
+                                                  v-model="editor.firstguardian_relationship"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第一监护人电话" prop="firstguardian_phone">
+                                        <el-input auto-complete="off" v-model="editor.firstguardian_phone"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第一监护人微信">
+                                        <el-input auto-complete="off" v-model="editor.firstguardian_wechat"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第二监护人姓名">
+                                        <el-input auto-complete="off" v-model="editor.secondguardian_name"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="与第二监护人关系">
+                                        <el-input auto-complete="off"
+                                                  v-model="editor.secondguardian_relationship"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第二监护人电话">
+                                        <el-input auto-complete="off" v-model="editor.secondguardian_phone"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="第二监护人微信">
+                                        <el-input auto-complete="off" v-model="editor.secondguardian_wechat"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="健康状况" prop="health_state">
+                                        <el-input auto-complete="off" v-model="editor.health_state"></el-input>
+                                    </el-form-item>
+                                    <el-form-item label="描述">
+                                        <el-input auto-complete="off" v-model="editor.DESCRIPTION"></el-input>
+                                    </el-form-item>
+                                </el-form>
+                                <div class="dialog-footer" slot="footer">
+                                    <el-button @click="editElderDialogVisible = false">取 消</el-button>
+                                    <el-button @click="finishEditElder()" type="primary">确 定</el-button>
+                                </div>
+                            </el-dialog>
+                            <a @click.prevent="deleteElder(index)" class="delete" href="">删除</a>
+                        </td>
+                    </tr>
+                </table>
+                <div style="display:inline-block; float:right;">
+                    <el-pagination
+                            :current-page.sync="pageNow"
+                            :page-size="size"
+                            :page-sizes="[2,5,10]"
+                            :total="total"
+                            @current-change="findPage"
+                            @size-change="findSizeChange"
+                            background
+                            layout="total, sizes, prev, pager, next, jumper"
+                            style="padding-top: 15px">
+                    </el-pagination>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+
+<script>
+        var app=new Vue({
+            el:"#app",
+            data:{
+                size:5,
+                total:0,
+                pageNow: 1,
+                index:0,
+                editor:[],
+                my_list:[],
+                form:{"ID":"", "username": "","gender":"", "phone":"", "id_card":"", "birthday":"",
+                 "checkin_date":"", "checkout_date":"", "profile_photo":"", "room_number":"", "firstguardian_name":"",
+                  "firstguardian_relationship":"", "firstguardian_phone":"", "firstguardian_wechat":"",
+                  "secondguardian_name":"","secondguardian_relationship":"", "secondguardian_phone":"",
+                   "secondguardian_wechat":"","health_state":"","DESCRIPTION":"","CREATED":"","CREATEBY":"",
+                   "UPDATED":"","UPDATEBY":""},
+                search_input:"",
+                baseUrl:"http://121.196.111.9:5000/secs/",
+                socketUrl:"http://192.168.43.46:5001/",
+                socket: null,
+                agesNum:[],
+                male:0,
+                female:0,
+                elderDetailDialogVisible: false,
+                addElderDialogVisible: false,
+                editElderDialogVisible: false,
+                statisticDialogVisible: false,
+                 pickerOptions1: {
+                disabledDate(time) {return time.getTime() > Date.now();},
+                },
+                id:0,
+                sysID:location.search.replace(/[^\d]/g, ""),
+                rules: {
+                username: [
+                    {required: true, message: '请输入姓名', trigger: 'blur'},
+                ],
+                gender: [
+                    {required: true, message: '请选择性别', trigger: 'change'},
+                ],
+                phone: [
+                    {required: true, message: '请输入电话号码', trigger: 'blur'},
+                ],
+                id_card: [
+                    {required: true, message: '请输入身份证号', trigger: 'blur'},
+                ],
+                birthday: [
+                    {required: true, message: '请输入出生日期', trigger: 'change'},
+                ],
+                checkin_date: [
+                    {required: true, message: '请选则入养老院日期', trigger: 'change'},
+                ],
+                room_number: [
+                    {required: true, message: '请输入房间号', trigger: 'blur'},
+                ],
+                firstguardian_name: [
+                    {required: true, message: '请输入第一监护人姓名', trigger: 'blur'},
+                ],
+                firstguardian_relationship: [
+                    {required: true, message: '请输入与第一监护人关系', trigger: 'blur'},
+                ],
+                firstguardian_phone: [
+                    {required: true, message: '请输入第一监护人电话', trigger: 'blur'},
+                ],
+                health_state: [
+                    {required: true, message: '请输入健康状态', trigger: 'blur'},
+                ]}
+               },
+            delimiters:["[[","]]"],
+            mounted:function (){
+                this.fetchData()
+                this.initWebSocket()
+                console.log("sysID")
+                console.log(this.sysID)
+            },
+            methods:{
+              findSizeChange(size) {
+                console.log("当每页条数改变的时候" + size)
+                this.size = size
+                if(this.search_input==''){this.fetchData()}
+                else{this.post_query()}
+              },
+              findPage() {
+                console.log(this.pageNow)
+                if(this.search_input==''){this.fetchData()}
+                else{this.post_query()}
+              },
+                fetchData(){
+                    this.$http.get(this.baseUrl+"getOldPersonList",{
+                            params:{
+                            pageNow:this.pageNow,
+                            pageSize:this.size}}
+                       ).then(rsp=>{
+                        this.my_list=rsp.body.data.olds
+                       this.total =rsp.body.data.total
+                        console.log(rsp.body.data.olds)
+                    },err=>{console.log('getOldPersonList Error')});
+                },
+                deleteElder(index){
+                    this.index=index
+                    var answer = window.confirm("确定要删除该老人吗")
+                     if(answer){
+                        var data={ID:this.my_list[index].ID,UPDATEBY:this.sysID}
+                        this.$http.post(this.baseUrl+"deleteOldPerson",JSON.stringify(data),{emulateJSON:true}
+                        ).then(rsp=>{
+                        console.log("删除后重新获取")
+                        this.fetchData()
+                    },err=>{console.log('deleteOldPersonList Error')});
+                    }
+                },
+                 editClicked(index) {
+                  this.index=index
+                  this.editor=this.my_list[index]
+                  this.editElderDialogVisible=true
+                  console.log(index)
+                },
+                detailClicked(index) {
+                  this.index=index
+                  this.editor=this.my_list[index]
+                  this.elderDetailDialogVisible=true
+                  console.log(index)
+                },
+                finishEditElder() {
+                  console.log(this.$refs['editor'])
+                    this.$refs['editor'][0].validate((valid)=>{
+                        if(valid){
+                            this.editElderDialogVisible = false
+                            this.editor.UPDATEBY=this.sysID
+                            var elder = this.editor
+                            var data={elder:elder}
+                            this.$http.post(this.baseUrl+"updateOldPerson",JSON.stringify(data),{emulateJSON:true})
+                        }else {
+                            console.log('error submit!!');
+                            return false;
+                          }
+                    });
+                },
+                finishAddElder(formList){
+                   this.$refs[formList].validate((valid)=>{
+                        if (valid) {
+                           this.form.profile_photo=this.form.id_card
+                           this.form.CREATEBY=this.sysID
+                           this.form.UPDATEBY=this.sysID
+                            var data={form:this.form}
+                             this.$http.post(this.baseUrl+"addOldPerson",JSON.stringify(data),{emulateJSON:true}
+                               ).then(rsp=>{
+                                this.id=rsp.body.data.ID
+                                console.log(this.id)
+                                console.log(rsp.body)
+                                this.emitToCv()
+                                this.addElderDialogVisible = false
+                                console.log("重新获取")
+                                this.fetchData()
+                                 },err=>{console.log('getOldPersonList Error')});
+                            console.log("form:")
+                            console.log(this.form)
+                            this.addElderDialogVisible = false
+                        } else {
+                            console.log("表单验证不通过");
+                            return false;
+                        }
+                    });
+                },
+                   statistics(){
+                    this.$http.get(this.baseUrl+"countOldPerson"
+                       ).then(rsp=>{
+                            this.agesNum=rsp.body.data
+                            console.log("age statistics:")
+                            console.log(rsp.body)
+                          this.$http.get(this.baseUrl+"getOldPersonSex"
+                           ).then(rsp=>{
+                            this.male=rsp.body.data.male
+                            this.female=rsp.body.data.female
+                            console.log("sex statistics:")
+                            console.log(rsp.body)
+                            this.statisticDialogVisible=true
+                            },err=>{console.log('getSex Error')});
+                    },err=>{console.log('getAge Error')});
+
+                   },
+                    initEcharts(){
+                    this.statisticDialogVisible=true
+                    var myChart1 = echarts.init(document.getElementById('main1'));
+                    var option1 = {
+                        title: {
+                            text: '老人年龄统计柱形图',
+                            x:'center'
+                        },
+                        tooltip: {},
+<!--                        legend: {-->
+<!--                            data:['人数']-->
+<!--                        },-->
+                        xAxis: {
+                            data: ["60岁以下", "60-65岁", "65-70岁", "70-75岁", "75-80岁", "80岁以上"]
+                        },
+                        yAxis: {
+                            name: "人（数量）",
+                            type: "value"
+                         },
+                        series: [{
+                            name: '人数',
+                            type: 'bar',
+                            data: this.agesNum,
+                            itemStyle: {
+                                normal: {　　　　　　　
+                                    color: function(params) {
+                                        var colorList = ['#c23531','#2f4554', '#61a0a8', '#d48265', '#91c7ae','#749f83', '#ca8622'];
+                                        return colorList[params.dataIndex]
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    var myChart2 = echarts.init(document.getElementById('main2'));
+                    var option2 = {
+                        tooltip : {
+                            trigger: 'item',
+                            formatter: "{b} : {c} ({d}%)"
+                        },
+                        title: {
+                            text: '老人男女性别比例',
+                            x:'center'
+                        },
+                        series : [
+                                    {
+                                        type: 'pie',    // 设置图表类型为饼图
+                                        radius: '55%',  // 饼图的半径，外半径为可视区尺寸（容器高宽中较小一项）的 55% 长度。
+                                        data:[          // 数据数组，name 为数据项名称，value 为数据项值
+                                            {value:this.male, name:'男'},
+                                            {value:this.female, name:'女'}
+                                        ]
+                                    }
+                                 ]
+                    }
+                    myChart1.setOption(option1);
+                    myChart2.setOption(option2);
+                    },
+                    open(){
+                        this.$nextTick(() => {
+                        //  执行echarts方法
+                          this.initEcharts()
+                        })
+                      },
+                    bindIcon(icon) {
+                        return this.socketUrl+"display/img/"+icon;
+                    },
+                    post_query(){
+                        if (this.search_input==''){
+                            alert("输入为空！")
+                        }else {
+                        this.$http.get(this.baseUrl+"getOldPersonList",{
+                                params:{
+                                pageNow:this.pageNow,
+                                pageSize:this.size,
+                                content:this.search_input}}
+                        ).then(rsp=>{
+                            if (rsp.body.data.olds.length!=0){
+                                this.my_list=rsp.body.data.olds
+                                this.total=rsp.body.data.total
+                                console.log(rsp.body)
+                            }else {
+                                this.my_list=[{}]
+                                alert("没有找到匹配的结果！")
+                            }
+                            console.log(rsp.body.data.olds.length)
+                            },err=>{console.log('Error')});
+                        }
+                     },
+            initWebSocket(){
+                var namespace = '/test';
+                this.socket = io.connect(location.protocol + '//' + "192.168.43.46" + ':' + 5001 + namespace);
+                console.log("location.protocol")
+                console.log(location.protocol)
+<!--                this.socket = io.connect(this.socketUrl +namespace);-->
+<!--                this.socket=io.connect(location.protocol + '//' + document.domain + ':' + 5000 + namespace);-->
+                console.log(this.socket)
+
+<!--                 this.socket.on('connect', function(res) {  &lt;!&ndash; 接收消息 &ndash;&gt;-->
+<!--                    console.log(res)-->
+<!--                });-->
+                this.socket.on('my response', function(res) {  <!-- 接收消息 -->
+                    console.log(res)
+                    data=JSON.parse(res)
+                    console.log(data)
+                })
+            },
+              emitToCv(){
+              console.log(this.socket)
+              console.log(this.id)
+                  var data={"id":this.id,"name":this.form.username,"type":"old_person" ,"id_card":this.form.id_card}
+                  this.socket.emit("collectingFace", JSON.stringify(data));
+                  console.log("emit")
+              }
+            }
+        });
+
+
+
+</script>
+
+</body>
+</html>
